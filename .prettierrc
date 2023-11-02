@@ -1,0 +1,25 @@
+{
+  "trailingComma": "es5",
+  "tabWidth": 2,
+  "printWidth": 250,
+  "bracketSpacing": true,
+  "bracketSameLine": true,
+  "semi": false,
+  "omitTrailingSemicolon": true,
+  "arrowParens": "avoid",
+  "singleAttributePerLine": false,
+  "overrides": [
+    {
+      "files": "**/lwc/**/*.html",
+      "options": {
+        "parser": "lwc"
+      }
+    },
+    {
+      "files": "*.{cmp,page,component}",
+      "options": {
+        "parser": "html"
+      }
+    }
+  ]
+}

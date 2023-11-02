@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "target": "es2021",
+    "sourceMap": true,
+    "declaration": true,
+    "alwaysStrict": true,
+    "noUnusedLocals": true,
+    "strict": true,
+    "lib": ["es2021", "dom"],
+    "outDir": "lib",
+    "rootDir": "src"
+  },
+  "include": ["./src/**/*.ts"]
+}

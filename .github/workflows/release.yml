@@ -1,0 +1,66 @@
+name: Release
+
+on:
+  push:
+    branches:
+      # On the release branch, we keep node_modules instead of gitignoring them
+      - release
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # to be able to publish a GitHub release
+      issues: write # to be able to comment on released issues
+      pull-requests: write # to be able to comment on released pull requests
+      id-token: write # to enable use of OIDC for npm provenance
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18.17
+
+      - name: Rebuild node_modules for this platform, and verify that compilation works well
+        run: |
+          yarn cache clean
+          rm -rf node_modules
+          rm -f yarn.lock
+          yarn install && yarn build
+
+      - name: Commit the package.json, yarn.lock and node_modules updates made by rebuilding
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "chore(release): rebuild node_modules, package.json and yarn.lock [skip ci]"
+          commit_options: "--no-verify"
+          commit_user_name: "svc-bot"
+          commit_user_email: ""
+
+      - name: Generate oclif readme
+        uses: salesforcecli/github-workflows/.github/actions/generateOclifReadme@main
+        with:
+          skip-on-empty: "false"
+          pre-release: "false"
+
+      - run: npx semantic-release
+
+  #  uses: salesforcecli/github-workflows/.github/workflows/create-github-release.yml@main
+  #  secrets:
+  #    SVC_CLI_BOT_GITHUB_TOKEN: ${{ secrets.SVC_CLI_BOT_GITHUB_TOKEN }}
+  #  with:
+  #    prerelease: ${{ inputs.prerelease }}
+  #    # If this is a push event, we want to skip the release if there are no semantic commits
+  #    # However, if this is a manual release (workflow_dispatch), then we want to disable skip-on-empty
+  #    # This helps recover from forgetting to add semantic commits ('fix:', 'feat:', etc.)
+  #    skip-on-empty: ${{ github.event_name == 'push' }}
+  # docs:
+  #   # Most repos won't use this
+  #   # Depends on the 'release' job to avoid git collisions, not for any functionality reason
+  #   needs: release
+  #   secrets: inherit
+  #   if: ${{ github.ref_name == 'main' }}
+  #   uses: salesforcecli/github-workflows/.github/workflows/publishTypedoc.yml@main
